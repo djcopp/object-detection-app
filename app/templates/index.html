@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Detection App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #upload-form {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        #uploaded-image-container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            width: 600px; /* Predefined width for the image container */
+            height: 400px; /* Predefined height for the image container */
+        }
+
+        #uploaded-image {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        #object-detection-message {
+            text-align: center;
+            font-style: italic;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Object Detection App</h1>
+
+    <form id="upload-form" action="/" method="post" enctype="multipart/form-data">
+        <label for="file">Choose a file:</label>
+        <input type="file" name="file" id="file" style="margin-bottom: 10px;">
+        <br>
+        <label for="object_name">Enter object name:</label>
+        <input type="text" name="object_name" id="object_name" style="margin-bottom: 10px;">
+        <br>
+        <input type="submit" value="Upload" id="upload-btn" disabled>
+        <button type="button" id="clear-btn" style="display: none; margin-left: 10px;">Clear Photo</button>
+    </form>
+
+    <h2>Uploaded Image:</h2>
+
+    <div id="uploaded-image-container" style="display: none;">
+        <img id="uploaded-image" src="" alt="Uploaded Image">
+    </div>
+
+    <div id="object-detection-message" style="display: none;"></div>
+
+    <script>
+        const MAX_IMAGE_WIDTH = 600; // Maximum width for the uploaded image
+        const MAX_IMAGE_HEIGHT = 400; // Maximum height for the uploaded image
+        
+        // Get references to the form and its elements
+        const uploadForm = document.getElementById('upload-form');
+        const fileInput = document.getElementById('file');
+        const uploadBtn = document.getElementById('upload-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const uploadedImageContainer = document.getElementById('uploaded-image-container');
+        const uploadedImage = document.getElementById('uploaded-image');
+        const objectNameInput = document.getElementById('object_name');
+        const objectDetectionMessage = document.getElementById('object-detection-message');
+
+        // Function to enable/disable upload button
+        function updateUploadButton() {
+            uploadBtn.disabled = !fileInput.files.length;
+        }
+
+        // Function to resize the uploaded image
+        function resizeImage(image) {
+            const aspectRatio = image.width / image.height;
+            let newWidth, newHeight;
+            
+            // Calculate new dimensions based on the maximum width and height
+            if (image.width > MAX_IMAGE_WIDTH || image.height > MAX_IMAGE_HEIGHT) {
+                if (aspectRatio > 1) {
+                    newWidth = MAX_IMAGE_WIDTH;
+                    newHeight = MAX_IMAGE_WIDTH / aspectRatio;
+                } else {
+                    newWidth = MAX_IMAGE_HEIGHT * aspectRatio;
+                    newHeight = MAX_IMAGE_HEIGHT;
+                }
+            } else {
+                newWidth = image.width;
+                newHeight = image.height;
+            }
+            
+            // Apply the new dimensions
+            uploadedImage.style.width = `${newWidth}px`;
+            uploadedImage.style.height = `${newHeight}px`;
+        }
+
+        // Event listener for file input change
+        fileInput.addEventListener('change', function () {
+            if (fileInput.files.length > 0) {
+                // Show the clear button
+                clearBtn.style.display = 'inline-block';
+                // Hide the upload button
+                uploadBtn.style.display = 'none';
+                // Show the uploaded image container
+                uploadedImageContainer.style.display = 'block';
+                // Set the source of the uploaded image
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    uploadedImage.src = e.target.result;
+                    // Resize the uploaded image
+                    const tempImage = new Image();
+                    tempImage.onload = function() {
+                        resizeImage(tempImage);
+                    };
+                    tempImage.src = e.target.result;
+                }
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                // Hide the clear button
+                clearBtn.style.display = 'none';
+                // Show the upload button
+                uploadBtn.style.display = 'inline-block';
+                // Hide the uploaded image container
+                uploadedImageContainer.style.display = 'none';
+                // Clear the uploaded image source
+                uploadedImage.src = '';
+            }
+            // Enable/disable the upload button based on whether a file is selected
+            updateUploadButton();
+        });
+
+        // Event listener for clear button click
+        clearBtn.addEventListener('click', function () {
+            // Clear the file input
+            fileInput.value = '';
+            // Trigger a change event to update the UI
+            fileInput.dispatchEvent(new Event('change'));
+        });
+
+        // Event listener for object name input change
+        objectNameInput.addEventListener('input', function () {
+            const objectName = objectNameInput.value.trim();
+            if (objectName) {
+                objectDetectionMessage.textContent = `Starting ${objectName} detection!`;
+                objectDetectionMessage.style.display = 'block';
+            } else {
+                objectDetectionMessage.textContent = '';
+                objectDetectionMessage.style.display = 'none';
+            }
+        });
+
+        // Initial call to update upload button state
+        updateUploadButton();
+    </script>
+</body>
+</html>
