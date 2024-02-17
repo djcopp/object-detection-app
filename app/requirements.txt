@@ -4,3 +4,6 @@ pillow
 requests
 torch
 torchvision
+pandas
+opencv-python-headless  # This is the OpenCV package for headless environments
+matplotlib  # If you're using YOLOv5's plotting features
